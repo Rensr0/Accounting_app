@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>智能记账助手</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <div id="app-container">
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h2>欢迎使用智能记账助手</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" onclick="window.location.href='chat.html'">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <h3>智能助手</h3>
+                    <p>与AI助手对话，轻松管理账单</p>
+                </div>
+                <div class="feature-card" onclick="window.location.href='bill.html'">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <h3>账单管理</h3>
+                    <p>轻松管理您的日常收支记录</p>
+                </div>
+                <div class="feature-card" onclick="window.location.href='data.html'">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                    <h3>数据分析</h3>
+                    <p>可视化展示您的财务状况</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    try {
+        const bills = JSON.parse(localStorage.getItem('bills') || '[]');
+        console.log(bills);
+    } catch (error) {
+        console.error('Error parsing bills from localStorage:', error);
+    }
+</script>
