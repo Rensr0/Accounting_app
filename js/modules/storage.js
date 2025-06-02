@@ -3,6 +3,55 @@ const STORAGE_KEY = 'chat_messages';
 const MAX_MESSAGES = 100; // 最大存储消息数量
 
 /**
+ * 清理消息内容中的JSON代码块问题
+ * @param {string} content - 原始消息内容
+ * @returns {string} - 清理后的内容
+ */
+function cleanMessageContent(content) {
+    // 如果不是字符串，直接返回
+    if (typeof content !== 'string') return content;
+    
+    // 确保代码块正确格式化
+    // 1. 替换空的或只有空白的代码块
+    let cleaned = content
+        .replace(/```(?:json)?\s*```/g, '')
+        .replace(/```(?:json)?[\s\n]*```/g, '');
+    
+    // 2. 确保JSON代码块有正确的格式
+    const codeBlockRegex = /```(?:json)?\s*\n?([\s\S]*?)\n?```/g;
+    let match;
+    let lastIndex = 0;
+    let result = '';
+    
+    while ((match = codeBlockRegex.exec(cleaned)) !== null) {
+        // 添加代码块前的内容
+        result += cleaned.substring(lastIndex, match.index);
+        
+        try {
+            // 尝试解析JSON
+            const jsonContent = match[1].trim();
+            JSON.parse(jsonContent);
+            
+            // 如果解析成功，添加格式化的代码块
+            result += "```json\n" + jsonContent + "\n```";
+        } catch (e) {
+            // 如果解析失败，保留原始内容
+            result += match[0];
+        }
+        
+        lastIndex = match.index + match[0].length;
+    }
+    
+    // 添加剩余内容
+    if (lastIndex < cleaned.length) {
+        result += cleaned.substring(lastIndex);
+    }
+    
+    // 如果没有进行任何替换（没有找到代码块），返回原始清理后的内容
+    return result || cleaned;
+}
+
+/**
  * 保存消息到本地存储
  * @param {string} sender - 发送者 ('user' 或 'ai')
  * @param {string} content - 消息内容
@@ -14,10 +63,13 @@ export function saveMessage(sender, content, timestamp = new Date()) {
         // 获取现有消息
         const messages = loadMessages();
         
+        // 清理AI消息内容中可能存在的代码块问题
+        const cleanedContent = sender === 'ai' ? cleanMessageContent(content) : content;
+        
         // 添加新消息
         messages.push({
             sender,
-            content,
+            content: cleanedContent,
             timestamp: timestamp.toISOString()
         });
         

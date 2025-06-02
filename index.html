@@ -10,61 +10,12 @@
     <!-- 预加载关键资源 -->
     <link rel="preload" href="js/bill.js" as="script">
     <link rel="preconnect" href="https://freeai.rensr.site">
+    <script>
+        // 重定向到聊天页面
+        window.location.href = 'chat.html';
+    </script>
 </head>
 <body>
-    <div id="app-container">
-        <div class="dashboard">
-            <div class="dashboard-header">
-                <h2>欢迎使用智能记账助手</h2>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card" data-href="chat.html">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                    <h3>智能助手</h3>
-                    <p>与AI助手对话，轻松管理账单</p>
-                </div>
-                <div class="feature-card" data-href="bill.html">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                    <h3>账单管理</h3>
-                    <p>轻松管理您的日常收支记录</p>
-                </div>
-                <div class="feature-card" data-href="data.html">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                    </svg>
-                    <h3>数据分析</h3>
-                    <p>可视化展示您的财务状况</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-        // 初始化应用
-        (function() {
-            // 检查账单数据
-            try {
-                const bills = JSON.parse(localStorage.getItem('bills') || '[]');
-                console.log('已加载账单数据:', bills.length, '条记录');
-            } catch (error) {
-                console.error('加载账单数据失败:', error);
-                localStorage.setItem('bills', '[]');
-            }
-            
-            // 使用事件委托优化点击处理
-            document.querySelector('.features-grid').addEventListener('click', function(e) {
-                const card = e.target.closest('.feature-card');
-                if (card) {
-                    const href = card.dataset.href;
-                    if (href) window.location.href = href;
-                }
-            });
-        })();
-    </script>
+    <!-- 这个页面只用于重定向，实际内容已移至各功能页面 -->
 </body>
 </html>

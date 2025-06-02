@@ -2,9 +2,13 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>账单管理</title>
     <link rel="stylesheet" href="css/bill.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/remixicon/3.5.0/remixicon.css">
 </head>
 <body>
     <div id="app-container">
@@ -16,31 +20,89 @@
             </button>
             <span id="nav-title">账单管理</span>
             <button id="filter-btn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 6h18v2H3V6zm3 7h12v2H6v-2zm4 7h4v2h-4v-2z" fill="currentColor"/>
-                </svg>
+                <i class="ri-filter-3-line"></i>
             </button>
         </div>
 
         <div id="bill-stats">
             <div class="stat-card">
-                <h3>本月支出</h3>
+                <div class="stat-card-header">
+                    <i class="ri-arrow-down-circle-line"></i>
+                    <h3>本月支出</h3>
+                </div>
                 <p class="amount expense">¥0.00</p>
             </div>
             <div class="stat-card">
-                <h3>本月收入</h3>
+                <div class="stat-card-header">
+                    <i class="ri-arrow-up-circle-line"></i>
+                    <h3>本月收入</h3>
+                </div>
                 <p class="amount income">¥0.00</p>
             </div>
+        </div>
+
+        <div class="bill-categories">
+            <div class="bill-category-title">分类账单</div>
+            <div class="category-icons">
+                <div class="category-icon">
+                    <div class="icon-wrapper food">
+                        <i class="ri-restaurant-line"></i>
+                    </div>
+                    <span>餐饮</span>
+                </div>
+                <div class="category-icon">
+                    <div class="icon-wrapper shopping">
+                        <i class="ri-shopping-bag-line"></i>
+                    </div>
+                    <span>购物</span>
+                </div>
+                <div class="category-icon">
+                    <div class="icon-wrapper transport">
+                        <i class="ri-taxi-line"></i>
+                    </div>
+                    <span>交通</span>
+                </div>
+                <div class="category-icon">
+                    <div class="icon-wrapper entertainment">
+                        <i class="ri-film-line"></i>
+                    </div>
+                    <span>娱乐</span>
+                </div>
+                <div class="category-icon">
+                    <div class="icon-wrapper more">
+                        <i class="ri-more-line"></i>
+                    </div>
+                    <span>更多</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bill-list-header">
+            <h3>近期账单</h3>
+            <button class="view-all-btn">查看全部 <i class="ri-arrow-right-s-line"></i></button>
         </div>
 
         <div id="bill-list"></div>
 
         <button id="add-bill-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
-            </svg>
+            <i class="ri-add-line"></i>
             <span>记一笔</span>
         </button>
+        
+        <div id="bottom-nav">
+            <a href="bill.html" class="nav-item active">
+                <i class="ri-bill-line"></i>
+                <span>账单管理</span>
+            </a>
+            <a href="chat.html" class="nav-item">
+                <i class="ri-robot-fill"></i>
+                <span>AI记账</span>
+            </a>
+            <a href="data.html" class="nav-item">
+                <i class="ri-pie-chart-line"></i>
+                <span>数据分析</span>
+            </a>
+        </div>
     </div>
     <script type="module" src="js/bill.js"></script>
 </body>

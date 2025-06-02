@@ -1,3 +1,8 @@
+/* 移除点击高亮 */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -64,6 +69,8 @@ body {
     padding: 20px;
     display: flex;
     gap: 16px;
+    flex-direction: row;
+    flex-wrap: nowrap;
 }
 
 .stat-card {
@@ -73,19 +80,45 @@ body {
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 0;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    justify-content: center;
+}
+
+.stat-card-header i {
+    font-size: 20px;
+    margin-right: 8px;
+}
+
+.stat-card-header .ri-arrow-down-circle-line {
+    color: #ff4d4f;
+}
+
+.stat-card-header .ri-arrow-up-circle-line {
+    color: #52c41a;
 }
 
 .stat-card h3 {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: #666;
-    margin-bottom: 8px;
+    font-weight: 500;
 }
 
 .amount {
-    margin: 0;
-    font-size: 1.5rem;
+    margin: 8px 0 0;
+    font-size: 1.8rem;
     font-weight: 600;
+    text-align: center;
 }
 
 .amount.expense {
@@ -100,6 +133,8 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
+    padding-bottom: 120px;
+    margin-bottom: 60px;
 }
 
 /* 日期组样式 */
@@ -141,7 +176,7 @@ body {
     margin-bottom: 16px;
 }
 
-/* 账单项样式 */
+/* 账单项样式优化 */
 .bill-item {
     background: white;
     border-radius: 12px;
@@ -154,46 +189,88 @@ body {
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
 }
 
-.bill-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.bill-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--primary-color);
+    border-radius: 4px 0 0 4px;
+    opacity: 0.8;
+}
+
+.bill-item.income::before {
+    background: #52c41a;
 }
 
 .bill-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     flex: 1;
+}
+
+.bill-item-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 145, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.bill-item-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0; /* 防止文本溢出 */
 }
 
 .bill-item-title {
     font-weight: 500;
     color: #333;
     margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .bill-item-category {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .bill-item-right {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 8px;
+    gap: 4px;
+    min-width: 80px; /* 确保金额有足够空间显示 */
 }
 
 .bill-item-amount {
     font-weight: 600;
     font-size: 1.1rem;
+    white-space: nowrap;
 }
 
-.bill-item-amount.expense {
-    color: #ff4d4f;
-}
-
-.bill-item-amount.income {
-    color: #52c41a;
+.bill-item-date {
+    font-size: 0.8rem;
+    color: #aaa;
+    white-space: nowrap;
 }
 
 .bill-item-actions {
@@ -201,6 +278,7 @@ body {
     gap: 8px;
     opacity: 0;
     transition: opacity 0.2s;
+    margin-top: 4px;
 }
 
 .bill-item:hover .bill-item-actions {
@@ -237,16 +315,17 @@ body {
     padding: 40px 0;
     color: #999;
     font-size: 1rem;
+    margin-bottom: 80px;
 }
 
 #add-bill-btn {
     position: fixed;
-    bottom: 32px;
+    bottom: 80px;
     right: 32px;
     width: auto;
     height: 48px;
     border-radius: 24px;
-    background: linear-gradient(135deg, #0091ff 0%, #0066ff 100%);
+    background: var(--primary-gradient, linear-gradient(135deg, #0091ff 0%, #0066ff 100%));
     color: white;
     border: none;
     padding: 0 24px;
@@ -256,6 +335,7 @@ body {
     cursor: pointer;
     box-shadow: 0 4px 16px rgba(0, 102, 255, 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 990;
 }
 
 #add-bill-btn:hover {
@@ -265,6 +345,11 @@ body {
 
 #add-bill-btn span {
     font-weight: 500;
+}
+
+#add-bill-btn i {
+    font-size: 20px;
+    margin-right: 8px;
 }
 
 /* 账单详情对话框 */
@@ -454,19 +539,231 @@ body {
     box-shadow: 0 4px 12px rgba(255, 77, 79, 0.2);
 }
 
+/* 底部导航栏样式 */
+#bottom-nav {
+    position: fixed !important;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    height: 100%;
+    text-decoration: none;
+    color: var(--text-muted, #8e8e8e);
+    transition: all 0.3s;
+    padding: 8px 0;
+}
+
+.nav-item i {
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+
+.nav-item span {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.nav-item.active {
+    color: var(--primary-color, #0091ff);
+}
+
+/* 为导航项添加更好的点击反馈效果 */
+.nav-item:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+/* 为账单项添加更好的点击反馈效果 */
+.bill-item:active {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* 为按钮添加更好的点击反馈效果 */
+#add-bill-btn:active,
+#filter-btn:active {
+    transform: scale(0.95);
+}
+
+/* 添加分类图标区域样式 */
+.bill-categories {
+    margin: 20px;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.bill-category-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.category-icons {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.category-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 18%;
+    margin-bottom: 10px;
+}
+
+.icon-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    color: white;
+    font-size: 24px;
+    transition: all 0.2s;
+}
+
+.icon-wrapper:active {
+    transform: scale(0.92);
+}
+
+.icon-wrapper.food {
+    background: linear-gradient(135deg, #ff9a9e, #ff6b6b);
+}
+
+.icon-wrapper.shopping {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.icon-wrapper.transport {
+    background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+}
+
+.icon-wrapper.entertainment {
+    background: linear-gradient(135deg, #fad0c4, #ffd1ff);
+}
+
+.icon-wrapper.more {
+    background: linear-gradient(135deg, #d4fc79, #96e6a1);
+}
+
+.category-icon span {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+/* 账单列表标题 */
+.bill-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 20px 10px;
+}
+
+.bill-list-header h3 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #333;
+    margin: 0;
+}
+
+.view-all-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+.view-all-btn:active {
+    background: rgba(0, 145, 255, 0.1);
+}
+
+.view-all-btn i {
+    margin-left: 2px;
+    font-size: 16px;
+}
+
+/* 美化筛选按钮 */
+#filter-btn {
+    font-size: 20px;
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: all 0.2s;
+}
+
+#filter-btn:active {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--primary-color);
+}
+
 @media (max-width: 768px) {
     #bill-stats {
-        flex-direction: column;
+        flex-direction: row;
         margin-top: 72px;
         padding: 16px;
+        gap: 12px;
     }
 
     .stat-card {
         padding: 16px;
     }
+    
+    .bill-categories {
+        margin: 16px;
+        padding: 16px;
+    }
+    
+    .category-icon {
+        width: 19%;
+    }
+    
+    .icon-wrapper {
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+    }
+    
+    .bill-list-header {
+        margin: 0 16px 10px;
+    }
 
     #bill-list {
         padding: 16px;
+        padding-bottom: 150px;
     }
 
     .bill-item {
@@ -474,10 +771,12 @@ body {
     }
 
     #add-bill-btn {
-        bottom: 24px;
-        right: 24px;
+        bottom: 80px;
+        right: 16px;
+        height: 44px;
+        padding: 0 20px;
     }
-
+    
     #nav-bar {
         height: 56px;
         padding: 0 16px;
@@ -487,4 +786,22 @@ body {
         padding: 20px;
         max-height: 80vh;
     }
+
+    .empty-message {
+        padding: 30px 0;
+        margin-bottom: 120px;
+    }
+}
+
+.bill-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.bill-item-amount.expense {
+    color: #ff4d4f;
+}
+
+.bill-item-amount.income {
+    color: #52c41a;
 }

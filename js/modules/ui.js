@@ -94,19 +94,50 @@ export function processMessages(messageObjects, chatWindow, addMessageWithAnimat
  */
 export function extractAllJsonFromText(text) {
     const jsonObjects = [];
-    const jsonRegex = /\{[\s\S]*?\}/g;
-    let match;
     
-    while ((match = jsonRegex.exec(text)) !== null) {
+    // 先尝试查找代码块中的JSON
+    const codeBlockRegex = /```(?:json)?\s*\n?([\s\S]*?)\n?```/g;
+    let match;
+    let processedText = text;
+    
+    while ((match = codeBlockRegex.exec(text)) !== null) {
         try {
-            const jsonObj = JSON.parse(match[0]);
+            const jsonString = match[1].trim();
+            const jsonObj = JSON.parse(jsonString);
             jsonObjects.push({
                 json: jsonObj,
                 startIndex: match.index,
-                endIndex: match.index + match[0].length
+                endIndex: match.index + match[0].length,
+                isCodeBlock: true,
+                originalText: match[0]
             });
         } catch (e) {
-            console.log('提取JSON数据失败:', e);
+            console.log('代码块中的JSON解析失败:', e);
+        }
+    }
+    
+    // 再查找纯文本中的JSON对象
+    const jsonRegex = /\{[\s\S]*?\}/g;
+    
+    while ((match = jsonRegex.exec(text)) !== null) {
+        // 检查这个JSON是否已经在代码块中被处理过
+        const isInCodeBlock = jsonObjects.some(obj => 
+            obj.startIndex <= match.index && obj.endIndex >= match.index + match[0].length
+        );
+        
+        if (!isInCodeBlock) {
+            try {
+                const jsonObj = JSON.parse(match[0]);
+                jsonObjects.push({
+                    json: jsonObj,
+                    startIndex: match.index,
+                    endIndex: match.index + match[0].length,
+                    isCodeBlock: false,
+                    originalText: match[0]
+                });
+            } catch (e) {
+                console.log('纯文本中的JSON解析失败:', e);
+            }
         }
     }
     
@@ -405,8 +436,16 @@ function processAIMessage(content) {
     
     // 如果没有找到账单数据，直接返回文本内容
     if (jsonObjects.length === 0) {
+        // 清理可能存在的空代码块
+        const cleanedContent = processedContent
+            .replace(/```(?:json)?\s*```/g, '') // 移除空代码块
+            .replace(/```(?:json)?[\s\n]*```/g, '') // 移除只有空白的代码块
+            .replace(/```[\s\n]*$/g, '') // 移除文本末尾的未闭合代码块标记
+            .replace(/^[\s\n]*```/g, '') // 移除文本开头的未闭合代码块标记
+            .trim();
+            
         const messageElement = document.createElement('div');
-        messageElement.textContent = processedContent;
+        messageElement.textContent = cleanedContent;
         return [{ type: 'text', element: messageElement }];
     }
     
@@ -414,17 +453,28 @@ function processAIMessage(content) {
     const messageParts = [];
     let lastIndex = 0;
     
+    // 排序JSON对象，确保按照它们在文本中的位置顺序处理
+    jsonObjects.sort((a, b) => a.startIndex - b.startIndex);
+    
     // 处理每个JSON对象及其前后文本
     for (let i = 0; i < jsonObjects.length; i++) {
-        const { json, startIndex, endIndex } = jsonObjects[i];
+        const { json, startIndex, endIndex, isCodeBlock, originalText } = jsonObjects[i];
         
         // 添加JSON前的文本（如果有）
         if (startIndex > lastIndex) {
-            const beforeText = processedContent.substring(lastIndex, startIndex).trim();
+            let beforeText = processedContent.substring(lastIndex, startIndex).trim();
             if (beforeText) {
-                const textElement = document.createElement('div');
-                textElement.textContent = beforeText;
-                messageParts.push({ type: 'text', element: textElement });
+                // 清理文本，移除代码块标记和格式控制字符
+                beforeText = beforeText
+                    .replace(/```(?:json)?[\s\n]*$/g, '') // 移除尾部代码块开始标记
+                    .replace(/^[\s\n]*```/g, '') // 移除开头代码块结束标记
+                    .trim();
+                
+                if (beforeText) {
+                    const textElement = document.createElement('div');
+                    textElement.textContent = beforeText;
+                    messageParts.push({ type: 'text', element: textElement });
+                }
             }
         }
         
@@ -437,11 +487,19 @@ function processAIMessage(content) {
     
     // 添加最后一个JSON后的文本（如果有）
     if (lastIndex < processedContent.length) {
-        const afterText = processedContent.substring(lastIndex).trim();
+        let afterText = processedContent.substring(lastIndex).trim();
         if (afterText) {
-            const textElement = document.createElement('div');
-            textElement.textContent = afterText;
-            messageParts.push({ type: 'text', element: textElement });
+            // 清理文本，移除代码块标记和格式控制字符
+            afterText = afterText
+                .replace(/^[\s\n]*```/g, '') // 移除开头代码块开始标记
+                .replace(/```(?:json)?[\s\n]*$/g, '') // 移除尾部代码块结束标记
+                .trim();
+                
+            if (afterText) {
+                const textElement = document.createElement('div');
+                textElement.textContent = afterText;
+                messageParts.push({ type: 'text', element: textElement });
+            }
         }
     }
     

@@ -5,7 +5,7 @@ body {
     overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-    color: #333;
+    color: var(--text-dark, #333);
 }
 
 #chat-container {
@@ -70,6 +70,7 @@ body {
     overflow-y: auto;
     scroll-behavior: smooth;
     background: rgba(255, 255, 255, 0.5);
+    padding-bottom: 120px;
 }
 
 .message-container {
@@ -188,7 +189,10 @@ body {
 }
 
 #input-area {
-    position: relative;
+    position: fixed;
+    bottom: 60px;
+    left: 0;
+    right: 0;
     display: flex;
     padding: 20px 24px;
     background: rgba(255, 255, 255, 0.95);
@@ -197,6 +201,7 @@ body {
     box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.08);
     gap: 16px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999;
 }
 
 .input-actions {
@@ -249,7 +254,7 @@ body {
 #send-btn {
     margin-left: 16px;
     padding: 14px;
-    background: linear-gradient(135deg, #0091ff 0%, #0066ff 100%);
+    background: var(--primary-gradient, linear-gradient(135deg, #0091ff 0%, #0066ff 100%));
     color: white;
     border: none;
     border-radius: 50%;
@@ -357,6 +362,7 @@ body {
     #chat-window {
         padding: 16px;
         padding-top: 72px;
+        padding-bottom: 120px;
     }
 }
 
@@ -814,7 +820,6 @@ body {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    width: 100%;
     margin: 8px 0 24px 16px;
     position: relative;
     transition: opacity 0.3s ease;
@@ -837,6 +842,7 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-radius: 12px;
     overflow: hidden;
+    width: 85%;
 }
 
 /* 确保账单卡片在消息气泡中也有正确的样式 */
@@ -854,4 +860,95 @@ body {
     .bill-card-wrapper {
         max-width: 85%;
     }
+}
+
+/* 底部导航栏样式 */
+#bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    position: fixed !important;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    height: 100%;
+    text-decoration: none;
+    color: var(--text-muted, #8e8e8e);
+    transition: all 0.3s;
+    padding: 8px 0;
+}
+
+.nav-item i {
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+
+.nav-item span {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.nav-item.active {
+    color: var(--primary-color, #0091ff);
+}
+
+/* 在顶部添加全局样式 */
+* {
+    -webkit-tap-highlight-color: transparent; /* 移除点击元素时的蓝色方框 */
+}
+
+/* 为导航项添加更好的点击反馈效果 */
+.nav-item:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+/* 为按钮添加更好的点击反馈效果 */
+.action-btn:active,
+#send-btn:active,
+#clear-chat-btn:active {
+    transform: scale(0.95);
+}
+
+/* 键盘显示时的样式调整 */
+@media screen and (max-height: 450px) {
+    #bottom-nav {
+        display: none;
+    }
+    
+    #input-area {
+        bottom: 0;
+    }
+    
+    #chat-window {
+        padding-bottom: 70px;
+    }
+}
+
+/* 键盘弹出时的样式 */
+body.keyboard-open #bottom-nav {
+    display: none; /* 输入法弹出时隐藏底部导航栏 */
+}
+
+body.keyboard-open #input-area {
+    bottom: 0; /* 输入区域直接贴底 */
+}
+
+body.keyboard-open #chat-window {
+    padding-bottom: 70px; /* 减少底部空间，只需适应输入框 */
 }

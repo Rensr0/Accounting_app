@@ -112,8 +112,8 @@ export class BillManager {
         }
         
         // 更新账单数据
-        this.bills[index] = {
-            ...this.bills[index],
+            this.bills[index] = {
+                ...this.bills[index],
             title: updatedData.title || this.bills[index].title,
             amount: parseFloat(updatedData.amount) || this.bills[index].amount,
             category: updatedData.category || this.bills[index].category,
@@ -122,7 +122,7 @@ export class BillManager {
         };
         
         // 保存账单数据
-        this.saveBills();
+            this.saveBills();
         
         // 如果在账单页面，更新UI
         if (document.getElementById('bill-list')) {
@@ -376,9 +376,28 @@ export class BillManager {
         billItem.className = 'bill-item';
         billItem.dataset.id = bill.id;
         
+        // 设置收入/支出类型样式
+        if (bill.type === 'income') {
+            billItem.classList.add('income');
+        }
+        
         // 创建左侧信息
         const leftInfo = document.createElement('div');
         leftInfo.className = 'bill-item-left';
+        
+        // 创建图标
+        const icon = document.createElement('div');
+        icon.className = 'bill-item-icon';
+        
+        // 根据分类选择图标
+        const iconClass = this.getCategoryIcon(bill.category);
+        const iconElement = document.createElement('i');
+        iconElement.className = iconClass;
+        icon.appendChild(iconElement);
+        
+        // 创建文本信息容器
+        const textInfo = document.createElement('div');
+        textInfo.className = 'bill-item-text';
         
         // 创建标题
         const title = document.createElement('div');
@@ -390,9 +409,13 @@ export class BillManager {
         category.className = 'bill-item-category';
         category.textContent = bill.category;
         
+        // 组装文本信息
+        textInfo.appendChild(title);
+        textInfo.appendChild(category);
+        
         // 组装左侧信息
-        leftInfo.appendChild(title);
-        leftInfo.appendChild(category);
+        leftInfo.appendChild(icon);
+        leftInfo.appendChild(textInfo);
         
         // 创建右侧信息
         const rightInfo = document.createElement('div');
@@ -402,6 +425,13 @@ export class BillManager {
         const amount = document.createElement('div');
         amount.className = `bill-item-amount ${bill.type}`;
         amount.textContent = bill.type === 'income' ? `+¥${bill.amount.toFixed(2)}` : `-¥${bill.amount.toFixed(2)}`;
+        
+        // 创建日期
+        const date = document.createElement('div');
+        date.className = 'bill-item-date';
+        // 从ISO日期提取月和日
+        const dateObj = new Date(bill.date);
+        date.textContent = `${dateObj.getMonth() + 1}月${dateObj.getDate()}日`;
         
         // 创建操作按钮
         const actions = document.createElement('div');
@@ -431,6 +461,7 @@ export class BillManager {
         
         // 组装右侧信息
         rightInfo.appendChild(amount);
+        rightInfo.appendChild(date);
         rightInfo.appendChild(actions);
         
         // 组装账单项
@@ -443,6 +474,32 @@ export class BillManager {
         });
         
         return billItem;
+    }
+    
+    // 根据分类获取对应图标
+    getCategoryIcon(category) {
+        const categoryMap = {
+            '餐饮': 'ri-restaurant-line',
+            '食物': 'ri-restaurant-line',
+            '饮食': 'ri-restaurant-line',
+            '购物': 'ri-shopping-bag-line',
+            '服装': 'ri-t-shirt-line',
+            '交通': 'ri-taxi-line',
+            '娱乐': 'ri-film-line',
+            '旅游': 'ri-flight-takeoff-line',
+            '住宿': 'ri-home-line',
+            '教育': 'ri-book-open-line',
+            '医疗': 'ri-heart-pulse-line',
+            '通讯': 'ri-smartphone-line',
+            '水电': 'ri-flashlight-line',
+            '工资': 'ri-wallet-3-line',
+            '收入': 'ri-money-cny-circle-line',
+            '投资': 'ri-stock-line',
+            '奖金': 'ri-coupon-line'
+        };
+        
+        // 如果找不到匹配的分类，返回默认图标
+        return categoryMap[category] || 'ri-file-list-line';
     }
     
     // 显示账单详情

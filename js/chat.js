@@ -327,4 +327,30 @@ class ChatApp {
 // 页面加载完成后初始化聊天应用
 document.addEventListener('DOMContentLoaded', () => {
     new ChatApp();
+    
+    // 防止输入法弹出导致的视觉问题
+    const messageInput = document.getElementById('message-input');
+    
+    // 监听输入框获取焦点
+    messageInput.addEventListener('focus', () => {
+        // 在移动设备上，当输入法弹出时，防止底部导航栏上移
+        document.body.classList.add('keyboard-open');
+        
+        // 稍微延迟滚动，等待布局稳定
+        setTimeout(() => {
+            const chatWindow = document.getElementById('chat-window');
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }, 300);
+    });
+    
+    // 监听输入框失去焦点
+    messageInput.addEventListener('blur', () => {
+        document.body.classList.remove('keyboard-open');
+    });
+    
+    // 监听窗口大小变化，防止键盘显示/隐藏导致的布局问题
+    window.addEventListener('resize', () => {
+        const chatWindow = document.getElementById('chat-window');
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    });
 });

@@ -1,3 +1,8 @@
+/* 移除点击高亮 */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -14,10 +19,14 @@ body {
     box-sizing: border-box;
     position: relative;
     backdrop-filter: blur(8px);
+    padding-bottom: 80px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
 }
 
 #nav-bar {
-    position: fixed;
+    position: sticky;
     top: 0;
     left: 0;
     right: 0;
@@ -30,9 +39,17 @@ body {
     padding: 0 24px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#back-btn {
+#nav-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: -0.02em;
+}
+
+#back-btn, #filter-btn {
     background: none;
     border: none;
     padding: 10px;
@@ -45,45 +62,585 @@ body {
     justify-content: center;
 }
 
-.chart-container {
-    margin-top: 80px;
+#back-btn:hover, #filter-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #333;
+    transform: translateY(-2px);
+}
+
+/* 顶部统计卡片 */
+.dashboard-stats {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    margin-top: 8px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.stat-card {
+    flex: 1;
+    background: white;
+    border-radius: 16px;
     padding: 20px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    overflow-y: auto;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-width: 0;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.income-card {
+    background: linear-gradient(135deg, rgba(82, 196, 26, 0.08), rgba(82, 196, 26, 0.02));
+    border-left: 4px solid #52c41a;
+}
+
+.expense-card {
+    background: linear-gradient(135deg, rgba(255, 77, 79, 0.08), rgba(255, 77, 79, 0.02));
+    border-left: 4px solid #ff4d4f;
+}
+
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.income-card .stat-icon {
+    color: #52c41a;
+    background: rgba(82, 196, 26, 0.12);
+}
+
+.expense-card .stat-icon {
+    color: #ff4d4f;
+    background: rgba(255, 77, 79, 0.12);
+}
+
+.stat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-value {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.income-card .stat-value {
+    color: #52c41a;
+}
+
+.expense-card .stat-value {
+    color: #ff4d4f;
+}
+
+.stat-trend {
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.stat-trend.positive {
+    color: #52c41a;
+}
+
+.stat-trend.negative {
+    color: #ff4d4f;
+}
+
+/* 收支概况卡片 */
+.dashboard-summary {
+    padding: 0 16px 16px;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.summary-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.summary-title i {
+    color: #0091ff;
+}
+
+.summary-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.summary-item {
+    flex: 1;
+    min-width: 100px;
+}
+
+.summary-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.summary-value {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.summary-progress {
+    width: 100%;
+    margin-top: 16px;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0091ff, #0066ff);
+    border-radius: 4px;
+    width: 45%;
+    transition: width 0.5s ease;
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #999;
+}
+
+/* 图表容器 */
+.chart-container {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .chart-card {
     background: white;
-    padding: 20px;
     border-radius: 16px;
+    overflow: hidden;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.chart-card h3 {
-    margin: 0 0 15px 0;
-    color: #333;
+.chart-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.chart-header h3 {
     font-size: 1.1rem;
-}
-
-canvas {
-    width: 100%!important;
-    height: 300px!important;
-}
-
-#filter-btn {
-    background: none;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-    color: #666;
-    border-radius: 50%;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-#filter-btn:hover {
-    background: rgba(0, 0, 0, 0.06);
+    font-weight: 600;
+    margin: 0;
     color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chart-header h3 i {
+    color: #0091ff;
+}
+
+.chart-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.chart-action-btn {
+    background: #f5f5f5;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chart-action-btn:hover {
+    background: #e8e8e8;
+    color: #333;
+}
+
+.chart-action-btn.active {
+    background: #0091ff;
+    color: white;
+}
+
+.chart-body {
+    padding: 16px;
+    height: 240px;
+    position: relative;
+}
+
+.category-legend {
+    padding: 0 16px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+}
+
+/* 智能洞察部分 */
+.insight-section {
+    padding: 16px;
+    margin-bottom: 80px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.section-title i {
+    color: #faad14;
+}
+
+.insight-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.insight-card {
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.insight-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.insight-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(250, 173, 20, 0.12);
+    color: #faad14;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.insight-content {
+    flex: 1;
+}
+
+.insight-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.insight-text {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.5;
+}
+
+.highlight {
+    font-weight: 600;
+    padding: 0 4px;
+    border-radius: 4px;
+}
+
+.highlight.increase {
+    color: #ff4d4f;
+    background-color: rgba(255, 77, 79, 0.08);
+}
+
+.highlight.decrease {
+    color: #52c41a;
+    background-color: rgba(82, 196, 26, 0.08);
+}
+
+/* 空洞察卡片样式 */
+.empty-insight {
+    background: linear-gradient(135deg, #f9f9f9, #f5f5f5);
+    border: 1px dashed #e8e8e8;
+}
+
+.empty-insight .insight-icon {
+    background: rgba(0, 0, 0, 0.05);
+    color: #aaa;
+}
+
+.empty-insight .insight-title {
+    color: #999;
+}
+
+.empty-insight .insight-text {
+    color: #aaa;
+}
+
+/* 新增分类的洞察卡片特殊样式 */
+.insight-card.new-category .insight-icon {
+    background: rgba(24, 144, 255, 0.12);
+    color: #1890ff;
+}
+
+/* 底部导航栏样式 */
+#bottom-nav {
+    position: fixed !important; /* 使用!important确保覆盖其他样式 */
+    bottom: 0 !important;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.1);
+    z-index: 9999 !important; /* 提高z-index确保显示在最上层 */
+    transform: translateZ(0);
+    will-change: transform;
+    width: 100%; /* 确保宽度100% */
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    height: 100%;
+    text-decoration: none;
+    color: var(--text-muted, #8e8e8e);
+    transition: all 0.3s;
+    padding: 8px 0;
+}
+
+.nav-item i {
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+
+.nav-item span {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.nav-item.active {
+    color: var(--primary-color, #0091ff);
+}
+
+/* 为导航项添加更好的点击反馈效果 */
+.nav-item:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .dashboard-stats {
+        flex-direction: row;
+        gap: 12px;
+        padding: 12px;
+    }
+    
+    .stat-card {
+        padding: 16px;
+    }
+    
+    .stat-value {
+        font-size: 1.4rem;
+    }
+    
+    .chart-body {
+        height: 220px;
+    }
+    
+    #nav-bar {
+        height: 56px;
+        padding: 0 16px;
+    }
+}
+
+/* 平板尺寸的优化 */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .chart-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: 
+            "trend trend"
+            "category compare";
+    }
+    
+    #trend-chart {
+        grid-area: trend;
+    }
+    
+    #category-chart {
+        grid-area: category;
+    }
+    
+    #compare-chart {
+        grid-area: compare;
+    }
+    
+    .chart-body {
+        height: 280px;
+    }
+}
+
+/* 较大屏幕尺寸优化 */
+@media (min-width: 1024px) {
+    .chart-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    .chart-body {
+        height: 300px;
+    }
+    
+    .dashboard-stats {
+        padding: 20px;
+    }
+    
+    .insight-cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-stats, .dashboard-summary, .chart-card, .insight-section {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.dashboard-stats {
+    animation-delay: 0.1s;
+}
+
+.dashboard-summary {
+    animation-delay: 0.2s;
+}
+
+.chart-card:nth-child(1) {
+    animation-delay: 0.3s;
+}
+
+.chart-card:nth-child(2) {
+    animation-delay: 0.4s;
+}
+
+.chart-card:nth-child(3) {
+    animation-delay: 0.5s;
+}
+
+.insight-section {
+    animation-delay: 0.6s;
+}
+
+/* 移动设备上键盘弹出时的处理 */
+@media screen and (max-height: 450px) {
+    #bottom-nav {
+        position: static !important;
+        margin-top: auto;
+    }
+    
+    #app-container {
+        padding-bottom: 20px;
+    }
+    
+    .insight-section {
+        margin-bottom: 20px;
+    }
+}
+
+/* 底部空间占位符 */
+.bottom-spacer {
+    height: 100px; /* 确保有足够的底部空间 */
+    width: 100%;
 }
