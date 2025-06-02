@@ -2,7 +2,6 @@
 import { loadMessages } from './storage.js';
 import { API_CONFIG } from '../config/api.config.js';
 import { BillManager } from '../bill.js';
-import { extractAllJsonFromText } from './ui.js';
 
 const MAX_CONTEXT_MESSAGES = 10; // 最大上下文消息数量
 
@@ -68,151 +67,84 @@ function createRequestBody(message) {
 }
 
 /**
- * 向AI发送消息
+ * 发送消息到API并获取回复
  * @param {string} message - 用户消息
- * @returns {Promise<string>} - AI响应
+ * @returns {Promise<string>} - AI回复的消息
  */
 export async function sendMessage(message) {
     try {
-        // 在这里进行本地处理，模拟AI响应
-        const response = await processMessage(message);
-        return response;
+        // 构建请求体
+        const requestBody = createRequestBody(message);
+        
+        // 发送请求到AI服务
+        const response = await fetch(API_CONFIG.endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${API_CONFIG.apiKey}`
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+                `API请求失败: ${response.status} ${response.statusText}\n` +
+                `详细信息: ${errorData.error?.message || '未知错误'}`
+            );
+        }
+
+        const data = await response.json();
+        const aiResponse = data.choices[0].message.content;
+        
+        // 检查是否是账单修改的系统提示
+        const isEditMessage = message.includes("[系统提示：");
+        
+        // 只有在非修改消息时处理可能的JSON账单数据
+        if (!isEditMessage) {
+            try {
+                const jsonMatch = aiResponse.match(/\{[\s\S]*?\}/);
+                if (jsonMatch) {
+                    const billData = JSON.parse(jsonMatch[0]);
+                    if (isValidBillData(billData)) {
+                        const processedData = processBillData(billData);
+                        
+                        // 添加新账单
+                        const billManager = new BillManager();
+                        const newBill = billManager.addBill(
+                            processedData.title,
+                            processedData.amount,
+                            processedData.category,
+                            processedData.type,
+                            processedData.date
+                        );
+                        
+                        // 在账单创建成功后，添加系统提示，表明这是新创建的账单
+                        if (newBill) {
+                            // 如果AI响应中包含系统提示关键词，则替换为正确的创建消息
+                            if (aiResponse.includes("[系统提示：账单已成功修改]")) {
+                                aiResponse = aiResponse.replace("[系统提示：账单已成功修改]", "[系统提示：账单已成功创建]");
+                            } 
+                            // 如果没有包含系统提示但含有JSON数据，在JSON前添加创建成功提示
+                            else if (jsonMatch) {
+                                const beforeJson = aiResponse.substring(0, jsonMatch.index);
+                                const afterJson = aiResponse.substring(jsonMatch.index + jsonMatch[0].length);
+                                aiResponse = beforeJson + "[系统提示：账单已成功创建] " + afterJson;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('JSON解析错误:', e);
+            }
+        }
+
+        return aiResponse;
     } catch (error) {
-        console.error('发送消息失败:', error);
+        console.error('API错误:', error);
+        if (error.message.includes('Failed to fetch')) {
+            throw new Error('网络连接失败，请检查网络设置或API配置是否正确');
+        }
         throw error;
     }
-}
-
-/**
- * 本地处理消息，模拟AI响应
- * @param {string} message - 用户消息
- * @returns {Promise<string>} - 处理后的响应
- */
-async function processMessage(message) {
-    // 简单延迟模拟网络请求
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // 关键词处理
-    const lowerMessage = message.toLowerCase();
-    
-    // 记账相关关键词
-    if (containsKeywords(lowerMessage, ['记账', '记一笔', '添加账单', '支出', '花费', '消费'])) {
-        return processAccountingMessage(message);
-    }
-    
-    // 查询类关键词
-    if (containsKeywords(lowerMessage, ['查询', '支出情况', '消费情况', '账单情况', '花了多少'])) {
-        return '您可以在账单管理页面查看详细的消费记录，也可以在数据分析页面查看消费统计图表。';
-    }
-    
-    // 其他常见问题
-    if (containsKeywords(lowerMessage, ['你是谁', '你能做什么'])) {
-        return '我是AI记账助手，可以帮您记录日常支出和收入，生成账单，分析消费习惯，提供理财建议等。';
-    }
-    
-    // 默认回复
-    return getDefaultResponse();
-}
-
-/**
- * 处理记账相关消息
- * @param {string} message - 用户消息
- * @returns {string} - 处理后的响应
- */
-function processAccountingMessage(message) {
-    try {
-        // 基本信息提取
-        const expenseMatch = message.match(/(\d+)(元|块|￥|¥)?/);
-        const amount = expenseMatch ? parseFloat(expenseMatch[1]) : getRandomAmount();
-        
-        // 类别提取
-        const categories = ['餐饮', '购物', '交通', '娱乐', '住宿'];
-        const categoryMatch = categories.find(cat => message.includes(cat));
-        const category = categoryMatch || categories[Math.floor(Math.random() * categories.length)];
-        
-        // 标题提取或生成
-        let title = '';
-        if (message.includes('在') && message.indexOf('在') < message.length - 1) {
-            const afterAt = message.substring(message.indexOf('在') + 1);
-            const endIndex = Math.min(
-                afterAt.indexOf('花') > -1 ? afterAt.indexOf('花') : Infinity,
-                afterAt.indexOf('消费') > -1 ? afterAt.indexOf('消费') : Infinity,
-                afterAt.indexOf('元') > -1 ? afterAt.indexOf('元') : Infinity,
-                10
-            );
-            title = afterAt.substring(0, endIndex > 0 ? endIndex : 5).trim();
-        }
-        
-        if (!title) {
-            const titles = {
-                '餐饮': ['午餐', '晚餐', '早餐', '下午茶', '夜宵'],
-                '购物': ['衣服', '日用品', '电子产品', '化妆品', '零食'],
-                '交通': ['打车', '公交', '地铁', '火车票', '飞机票'],
-                '娱乐': ['电影', '游戏', '演唱会', 'KTV', '酒吧'],
-                '住宿': ['酒店', '民宿', '公寓', '短租', '度假村']
-            };
-            const options = titles[category] || titles['餐饮'];
-            title = options[Math.floor(Math.random() * options.length)];
-        }
-        
-        // 生成账单数据
-        const billData = {
-            title,
-            amount,
-            category,
-            type: 'expense',
-            date: new Date().toISOString().split('T')[0]
-        };
-        
-        // 检查是否应该生成收入账单
-        if (message.includes('收入') || message.includes('工资') || message.includes('收款')) {
-            billData.type = 'income';
-            billData.category = '工资';
-            billData.title = '月薪';
-        }
-        
-        // 组装回复，确保账单数据以代码块形式返回
-        const billJson = JSON.stringify(billData, null, 2);
-        let response = `我已帮您记录了这笔${billData.type === 'income' ? '收入' : '支出'}，明细如下：\n\n`;
-        response += "```json\n" + billJson + "\n```\n\n";
-        response += "您可以点击「修改」按钮调整具体内容。";
-        
-        return response;
-    } catch (error) {
-        console.error('处理记账消息失败:', error);
-        return '抱歉，我无法理解您的记账请求，请尝试更清晰的表达，例如"午餐消费35元"。';
-    }
-}
-
-/**
- * 检查消息是否包含任意关键词
- * @param {string} message - 消息内容
- * @param {Array} keywords - 关键词数组
- * @returns {boolean} - 是否包含
- */
-function containsKeywords(message, keywords) {
-    return keywords.some(keyword => message.includes(keyword));
-}
-
-/**
- * 生成随机金额
- * @returns {number} - 随机金额
- */
-function getRandomAmount() {
-    return Math.floor(Math.random() * 200) + 10;
-}
-
-/**
- * 获取默认回复
- * @returns {string} - 默认回复
- */
-function getDefaultResponse() {
-    const responses = [
-        '您好，我是您的AI记账助手，请告诉我您想记录的收支情况，例如"午餐消费35元"。',
-        '需要记账吗？您可以直接告诉我收支情况，例如"今天购物花了128元"。',
-        '我可以帮您记录日常收支，请直接告诉我消费内容和金额，例如"打车花了32元"。',
-        '想要记录收支情况，可以直接告诉我，例如"收到工资3000元"或"买衣服花了199元"。'
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)];
 }
