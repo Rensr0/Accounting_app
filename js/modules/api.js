@@ -9,75 +9,86 @@ const MAX_CONTEXT_MESSAGES = 10; // 最大上下文消息数量
 function formatDate(dateStr) {
     if (!dateStr) return new Date().toISOString();
     
-    try {
-        // 检查是否是有效的日期格式
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) {
-            return new Date().toISOString();
-        }
-        return date.toISOString();
-    } catch (e) {
-        return new Date().toISOString();
-    }
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
 }
 
 // 检查账单数据是否完整
 function isValidBillData(billData) {
+    if (!billData || typeof billData !== 'object') return false;
+    
     // 检查金额是否有效
-    if (!billData.amount || billData.amount === '未知金额' || 
-        typeof billData.amount === 'string' && billData.amount.includes('未知')) {
-        return false;
-    }
-
+    if (!billData.amount) return false;
+    
     // 提取数字金额
-    const amount = parseFloat(billData.amount.toString().replace(/[^0-9.]/g, ''));
-    if (isNaN(amount) || amount <= 0) {
-        return false;
-    }
-
+    const amount = parseFloat(String(billData.amount).replace(/[^0-9.]/g, ''));
+    if (isNaN(amount) || amount <= 0) return false;
+    
     // 检查其他必要字段
-    return !!(billData.title && billData.category && billData.type);
+    return Boolean(billData.title && billData.category && billData.type);
 }
 
 // 处理账单数据
 function processBillData(billData) {
-    // 提取数字金额
-    const amount = parseFloat(billData.amount.toString().replace(/[^0-9.]/g, ''));
-    
     return {
         ...billData,
-        amount: amount, // 确保金额是数字
+        amount: parseFloat(String(billData.amount).replace(/[^0-9.]/g, '')),
         date: formatDate(billData.date),
-        type: billData.type.toLowerCase() // 确保类型是小写
+        type: billData.type.toLowerCase()
     };
 }
 
+// 从AI响应中提取JSON数据
+function extractBillDataFromResponse(aiResponse) {
+    try {
+        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) return null;
+        
+        const billData = JSON.parse(jsonMatch[0]);
+        return isValidBillData(billData) ? processBillData(billData) : null;
+    } catch (e) {
+        console.log('未找到账单数据或数据格式不正确:', e);
+        return null;
+    }
+}
+
+// 创建请求体
+function createRequestBody(message) {
+    // 获取历史消息作为上下文
+    const messages = loadMessages();
+    const recentMessages = messages.slice(-MAX_CONTEXT_MESSAGES);
+    
+    // 添加当前时间戳信息
+    const now = new Date();
+    const timeInfo = `[当前时间：${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日]\n`;
+    const messageWithTime = timeInfo + message;
+
+    // 构建带上下文的请求体
+    return {
+        model: API_CONFIG.model,
+        messages: [
+            { role: 'system', content: API_CONFIG.systemPrompt },
+            ...recentMessages.map(msg => ({
+                role: msg.sender === 'user' ? 'user' : 'assistant',
+                content: msg.content
+            })),
+            { role: 'user', content: messageWithTime }
+        ],
+        temperature: API_CONFIG.temperature,
+        max_tokens: API_CONFIG.maxTokens
+    };
+}
+
+/**
+ * 发送消息到API并获取回复
+ * @param {string} message - 用户消息
+ * @returns {Promise<string>} - AI回复的消息
+ */
 export async function sendMessage(message) {
     try {
-        // 获取历史消息作为上下文
-        const messages = loadMessages();
-        const recentMessages = messages.slice(-MAX_CONTEXT_MESSAGES);
+        // 构建请求体
+        const requestBody = createRequestBody(message);
         
-        // 添加当前时间戳信息
-        const now = new Date();
-        const timeInfo = `[当前时间：${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日]\n`;
-        const messageWithTime = timeInfo + message;
-
-        // 构建带上下文的请求体
-        const requestBody = {
-            model: API_CONFIG.model,
-            messages: [
-                { role: 'system', content: API_CONFIG.systemPrompt },
-                ...recentMessages.map(msg => ({
-                    role: msg.sender === 'user' ? 'user' : 'assistant',
-                    content: msg.content
-                })),
-                { role: 'user', content: messageWithTime }
-            ],
-            temperature: API_CONFIG.temperature,
-            max_tokens: API_CONFIG.maxTokens
-        };
-
         // 发送请求到AI服务
         const response = await fetch(API_CONFIG.endpoint, {
             method: 'POST',
@@ -98,35 +109,23 @@ export async function sendMessage(message) {
 
         const data = await response.json();
         const aiResponse = data.choices[0].message.content;
-
-        // 尝试从AI响应中提取JSON数据
-        try {
-            const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                const billData = JSON.parse(jsonMatch[0]);
-                
-                // 只有当账单数据完整时才进行处理和存储
-                if (isValidBillData(billData)) {
-                    // 处理账单数据
-                    const processedBillData = processBillData(billData);
-                    // 创建账单
-                    const billManager = new BillManager();
-                    billManager.addBill(
-                        processedBillData.title,
-                        processedBillData.amount,
-                        processedBillData.category,
-                        processedBillData.type,
-                        processedBillData.date
-                    );
-                }
-            }
-        } catch (e) {
-            console.log('未找到账单数据或数据格式不正确:', e);
+        
+        // 处理可能的账单数据
+        const billData = extractBillDataFromResponse(aiResponse);
+        if (billData) {
+            const billManager = new BillManager();
+            billManager.addBill(
+                billData.title,
+                billData.amount,
+                billData.category,
+                billData.type,
+                billData.date
+            );
         }
 
         return aiResponse;
     } catch (error) {
-        console.error('API请求失败:', error);
+        console.error('API错误:', error);
         if (error.message.includes('Failed to fetch')) {
             throw new Error('网络连接失败，请检查网络设置或API配置是否正确');
         }

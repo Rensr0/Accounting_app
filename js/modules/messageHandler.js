@@ -1,41 +1,50 @@
 // 消息处理模块
+
+/**
+ * 判断是否需要显示时间分割线
+ * @param {Date|null} lastTimestamp - 上一条消息的时间戳
+ * @param {Date} currentTimestamp - 当前消息的时间戳
+ * @returns {boolean} - 是否需要显示时间分割线
+ */
 export function shouldShowTimeDivider(lastTimestamp, currentTimestamp) {
+    // 如果没有上一条消息，则显示时间分割线
     if (!lastTimestamp) return true;
+    
+    // 计算时间差（毫秒）
     const timeDiff = currentTimestamp - lastTimestamp;
-    return timeDiff >= 5 * 60 * 1000; // 5分钟间隔
+    
+    // 如果时间差超过15分钟，则显示时间分割线
+    return timeDiff > 15 * 60 * 1000;
 }
 
-export function formatMessageTime(timestamp) {
+/**
+ * 格式化消息时间为友好显示格式
+ * @param {Date} date - 日期对象
+ * @returns {string} - 格式化后的时间字符串
+ */
+export function formatMessageTime(date) {
     const now = new Date();
-    const messageDate = new Date(timestamp);
-    const diffInSeconds = Math.floor((now - messageDate) / 1000);
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    const diffInDays = Math.floor(diffInHours / 24);
-
-    if (messageDate.getFullYear() !== now.getFullYear()) {
-        return messageDate.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' });
-    }
-
-    if (diffInDays >= 7) {
-        return messageDate.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
-    }
-
-    if (diffInDays > 0 && diffInDays <= 2) {
-        const dayText = diffInDays === 1 ? '昨天' : '前天';
-        return `${dayText} ${messageDate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`;
-    }
-
-    if (diffInDays > 0) {
-        const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
-        return `周${weekDays[messageDate.getDay()]} ${messageDate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`;
-    }
-
-    if (diffInMinutes < 1) {
-        return '刚刚';
-    } else if (diffInMinutes < 60) {
-        return `${diffInMinutes}分钟前`;
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // 格式化选项
+    const timeOptions = { hour: '2-digit', minute: '2-digit' };
+    const dateOptions = { month: 'long', day: 'numeric' };
+    const fullOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    
+    // 判断日期范围
+    if (date >= today) {
+        // 今天
+        return `今天 ${date.toLocaleTimeString('zh-CN', timeOptions)}`;
+    } else if (date >= yesterday) {
+        // 昨天
+        return `昨天 ${date.toLocaleTimeString('zh-CN', timeOptions)}`;
+    } else if (date.getFullYear() === now.getFullYear()) {
+        // 今年的其他日期
+        return date.toLocaleDateString('zh-CN', dateOptions);
     } else {
-        return messageDate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        // 更早的日期
+        return date.toLocaleDateString('zh-CN', fullOptions);
     }
 }

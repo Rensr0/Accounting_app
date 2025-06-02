@@ -134,6 +134,9 @@ body {
     margin-bottom: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .bill-item:hover {
@@ -245,6 +248,40 @@ body {
         height: 56px;
         padding: 0 16px;
     }
+
+    /* 移除固定居中样式 */
+    .bill-action-menu {
+        position: absolute;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    
+    .menu-item {
+        padding: 16px;
+        font-size: 16px;
+    }
+    
+    .menu-item svg {
+        width: 20px;
+        height: 20px;
+        margin-right: 12px;
+    }
+    
+    /* 添加菜单背景遮罩 */
+    .menu-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 999;
+        animation: fade-in 0.2s ease;
+    }
+    
+    @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
 }
 
 .add-bill-dialog {
@@ -258,6 +295,8 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 2000;
+    overflow: auto;
+    padding: 20px;
 }
 
 .dialog-content {
@@ -267,12 +306,22 @@ body {
     width: 90%;
     max-width: 400px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+    max-height: 85vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    position: relative;
 }
 
 .dialog-content h3 {
-    margin: 0 0 24px;
+    margin: 0 0 20px;
     font-size: 1.25rem;
     color: #333;
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 0 0 10px;
+    z-index: 1;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .form-group {
@@ -296,6 +345,7 @@ body {
     color: #333;
     background: #f9f9f9;
     transition: all 0.3s;
+    box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -310,6 +360,11 @@ body {
     display: flex;
     gap: 12px;
     margin-top: 24px;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
 }
 
 .dialog-buttons button {
@@ -339,4 +394,145 @@ body {
 .submit-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 102, 255, 0.2);
+}
+
+/* 添加右键菜单样式 */
+.bill-action-menu {
+    position: fixed;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 8px 0;
+    min-width: 150px;
+    z-index: 1000;
+    animation: menu-fade-in 0.2s ease;
+}
+
+@keyframes menu-fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    color: #333;
+    font-size: 14px;
+}
+
+.menu-item:hover {
+    background-color: #f5f5f5;
+}
+
+.menu-item svg {
+    margin-right: 8px;
+    color: #666;
+}
+
+.menu-item.edit-item svg {
+    color: #1890ff;
+}
+
+.menu-item.delete-item svg {
+    color: #ff4d4f;
+}
+
+.menu-item.delete-item:hover {
+    color: #ff4d4f;
+}
+
+/* 高亮显示选中的账单项 */
+.bill-item.selected {
+    background-color: rgba(24, 144, 255, 0.1);
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 移动端菜单样式 */
+.bill-action-menu.mobile-menu {
+    width: auto;
+    min-width: 140px;
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    transform-origin: left center;
+    animation: mobile-menu-fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes mobile-menu-fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 添加菜单箭头指向账单项 */
+.bill-action-menu.mobile-menu::before {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: white;
+    transform: rotate(45deg);
+    box-shadow: inherit;
+}
+
+.bill-action-menu.mobile-menu[data-position="right"]::before {
+    left: -6px;
+    top: 50%;
+    margin-top: -6px;
+    box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.bill-action-menu.mobile-menu[data-position="left"]::before {
+    right: -6px;
+    top: 50%;
+    margin-top: -6px;
+    box-shadow: 2px -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.bill-action-menu.mobile-menu[data-position="center"]::before {
+    left: 50%;
+    margin-left: -6px;
+    top: -6px;
+    box-shadow: -2px -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 移动端菜单项样式优化 */
+.bill-action-menu.mobile-menu .menu-item {
+    padding: 12px 16px;
+    font-size: 15px;
+}
+
+.bill-action-menu.mobile-menu .menu-item:first-child {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.bill-action-menu.mobile-menu .menu-item:last-child {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+/* 移动端背景遮罩调整 */
+@media (max-width: 768px) {
+    .menu-backdrop {
+        background-color: rgba(0, 0, 0, 0.3);
+    }
+    
+    /* 移动端菜单项触摸反馈 */
+    .bill-action-menu .menu-item:active {
+        background-color: #e6f7ff;
+    }
 }

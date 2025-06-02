@@ -4,7 +4,8 @@ body {
     height: 100vh;
     overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(to bottom right, #f8f9fa, #ffffff);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    color: #333;
 }
 
 #chat-container {
@@ -13,7 +14,6 @@ body {
     flex-direction: column;
     box-sizing: border-box;
     position: relative;
-    backdrop-filter: blur(8px);
 }
 
 #nav-bar {
@@ -22,13 +22,12 @@ body {
     left: 0;
     right: 0;
     height: 64px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.95);
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
     z-index: 1000;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -38,12 +37,14 @@ body {
     font-weight: 600;
     color: #1a1a1a;
     letter-spacing: -0.02em;
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #333;
 }
 
-#back-btn {
+.nav-actions {
+    display: flex;
+    gap: 12px;
+}
+
+#back-btn, .nav-action-btn {
     background: none;
     border: none;
     padding: 10px;
@@ -54,6 +55,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+#back-btn:hover, .nav-action-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #333;
+    transform: translateY(-2px);
 }
 
 #chat-window {
@@ -87,6 +94,24 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 2px solid rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    overflow: hidden;
+}
+
+.avatar i {
+    font-size: 24px;
+    color: #0066ff;
+}
+
+.user-message-container .avatar i {
+    color: #0091ff;
+}
+
+.ai-message-container .avatar i {
+    color: #6366f1;
 }
 
 .avatar:hover {
@@ -94,7 +119,7 @@ body {
 }
 
 .message {
-    padding: 12px 18px;
+    padding: 14px 20px;
     border-radius: 18px;
     max-width: 70%;
     word-wrap: break-word;
@@ -102,6 +127,8 @@ body {
     margin: 4px 0;
     line-height: 1.5;
     transition: all 0.2s ease;
+    white-space: pre-line;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .user-message {
@@ -120,7 +147,7 @@ body {
 
 .time-divider {
     text-align: center;
-    margin: 16px 0;
+    margin: 24px 0;
     color: #8e8e8e;
     font-size: 0.875rem;
     position: relative;
@@ -140,43 +167,33 @@ body {
     background: rgba(142, 142, 142, 0.2);
 }
 
-.time-divider::before,
-.time-divider::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 100px;
-    height: 1px;
-    background: rgba(110, 110, 110, 0.15);
-}
-
-.time-divider::before {
-    left: 50%;
-    margin-left: -120px;
-}
-
-.time-divider::after {
-    right: 50%;
-    margin-right: -120px;
-}
-
 .timestamp {
     font-size: 0.75rem;
     color: rgba(110, 110, 110, 0.8);
-    margin-top: 4px;
-    display: inline-block;
-    margin-left: 6px;
+    margin-top: 6px;
+    display: block;
+    text-align: right;
+    padding-right: 8px;
+}
+
+.user-message-container .timestamp {
+    text-align: right;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.ai-message-container .timestamp {
+    text-align: left;
+    padding-left: 8px;
 }
 
 #input-area {
     position: relative;
     display: flex;
     padding: 20px 24px;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.95);
     border-top: 1px solid rgba(230, 230, 230, 0.5);
     align-items: center;
-    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.08);
     gap: 16px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -221,6 +238,13 @@ body {
     box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.1);
 }
 
+#message-input:disabled {
+    background: rgba(248, 249, 250, 0.5);
+    border-color: rgba(230, 230, 230, 0.5);
+    color: #aaa;
+    cursor: not-allowed;
+}
+
 #send-btn {
     margin-left: 16px;
     padding: 14px;
@@ -246,6 +270,18 @@ body {
 #send-btn:active {
     transform: translateY(1px);
     box-shadow: 0 2px 8px rgba(0, 102, 255, 0.2);
+}
+
+#send-btn:disabled {
+    background: linear-gradient(135deg, #a8d4ff 0%, #a8c4ff 100%);
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#send-btn:disabled:hover {
+    transform: none;
+    box-shadow: none;
 }
 
 #chat-window::-webkit-scrollbar {
@@ -280,6 +316,10 @@ body {
         width: 36px;
         height: 36px;
         margin: 0 8px;
+    }
+
+    .avatar i {
+        font-size: 20px;
     }
 
     #input-area {
@@ -328,25 +368,7 @@ body {
     margin-left: 16px;
 }
 
-#settings-btn {
-    background: none;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-    color: #666;
-    border-radius: 50%;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#settings-btn:hover {
-    background: rgba(0, 0, 0, 0.06);
-    color: #333;
-    transform: translateY(-2px);
-}
-
+/* 设置面板样式 */
 #settings-panel {
     position: fixed;
     top: 76px;
@@ -362,7 +384,6 @@ body {
     opacity: 0;
     transform: scale(0.95) translateY(-8px);
     pointer-events: none;
-    backdrop-filter: blur(12px);
 }
 
 #settings-panel.show {
@@ -386,4 +407,166 @@ body {
 .settings-item:hover {
     background: rgba(0, 0, 0, 0.04);
     transform: translateX(4px);
+}
+
+.settings-item.danger {
+    color: #ff4d4f;
+}
+
+.settings-item.danger:hover {
+    background: rgba(255, 77, 79, 0.08);
+}
+
+/* AI正在输入中的动画效果 */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    padding: 12px 18px;
+    border-radius: 18px;
+    background: white;
+    border-top-left-radius: 6px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    margin: 4px 0 4px 16px;
+    max-width: 70%;
+    animation: fadeIn 0.3s ease;
+}
+
+.typing-indicator-container {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.typing-indicator-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #8e8e8e;
+    margin: 0 2px;
+    display: inline-block;
+    animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-indicator-dot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.typing-indicator-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-6px);
+    }
+}
+
+/* 确认对话框样式 */
+.confirm-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+.confirm-dialog-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 360px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.confirm-dialog-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.confirm-dialog-message {
+    margin-bottom: 24px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.confirm-dialog-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.confirm-dialog-button {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.confirm-dialog-cancel {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.confirm-dialog-cancel:hover {
+    background: #eee;
+}
+
+.confirm-dialog-confirm {
+    background: #ff4d4f;
+    color: white;
+}
+
+.confirm-dialog-confirm:hover {
+    background: #ff7875;
+}
+
+/* 空聊天提示 */
+.empty-chat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    text-align: center;
+    padding: 0 20px;
+}
+
+.empty-chat-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    color: #ccc;
+}
+
+.empty-chat-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #666;
+}
+
+.empty-chat-subtitle {
+    font-size: 1rem;
+    max-width: 300px;
+    line-height: 1.5;
 }

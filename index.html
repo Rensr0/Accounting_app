@@ -1,10 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="智能记账助手 - 轻松管理您的个人财务">
+    <meta name="theme-color" content="#0066ff">
     <title>智能记账助手</title>
     <link rel="stylesheet" href="css/index.css">
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="css/bill.css" as="style">
+    <link rel="preload" href="css/chat.css" as="style">
+    <link rel="preload" href="css/data.css" as="style">
+    <link rel="preload" href="js/bill.js" as="script">
+    <link rel="preload" href="js/chat.js" as="script">
+    <link rel="preload" href="js/data.js" as="script">
+    <!-- 预连接API域名 -->
+    <link rel="preconnect" href="https://freeai.rensr.site">
 </head>
 <body>
     <div id="app-container">
@@ -14,14 +25,14 @@
             </div>
             <div class="features-grid">
                 <div class="feature-card" onclick="window.location.href='chat.html'">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
                     <h3>智能助手</h3>
                     <p>与AI助手对话，轻松管理账单</p>
                 </div>
                 <div class="feature-card" onclick="window.location.href='bill.html'">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
                         <line x1="8" y1="21" x2="16" y2="21"></line>
                         <line x1="12" y1="17" x2="12" y2="21"></line>
@@ -30,7 +41,7 @@
                     <p>轻松管理您的日常收支记录</p>
                 </div>
                 <div class="feature-card" onclick="window.location.href='data.html'">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
                     </svg>
                     <h3>数据分析</h3>
@@ -39,13 +50,28 @@
             </div>
         </div>
     </div>
+    <script>
+        // 使用立即执行函数表达式(IIFE)避免全局变量污染
+        (function() {
+            // 检查账单数据
+            try {
+                const bills = JSON.parse(localStorage.getItem('bills') || '[]');
+                console.log('已加载账单数据:', bills.length, '条记录');
+            } catch (error) {
+                console.error('加载账单数据失败:', error);
+                // 重置损坏的数据
+                localStorage.setItem('bills', '[]');
+            }
+            
+            // 添加事件委托，优化点击处理
+            document.querySelector('.features-grid').addEventListener('click', function(e) {
+                const card = e.target.closest('.feature-card');
+                if (card) {
+                    const link = card.getAttribute('onclick').match(/'([^']+)'/)[1];
+                    window.location.href = link;
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
-<script>
-    try {
-        const bills = JSON.parse(localStorage.getItem('bills') || '[]');
-        console.log(bills);
-    } catch (error) {
-        console.error('Error parsing bills from localStorage:', error);
-    }
-</script>

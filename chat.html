@@ -5,10 +5,38 @@
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>智能聊天助手</title>
     <link rel="stylesheet" href="css/chat.css">
+    <!-- 使用国内CDN镜像加载图标库 -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/remixicon/3.5.0/remixicon.css">
 </head>
 <body>
+    <div id="nav-bar">
+        <button id="back-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/>
+            </svg>
+        </button>
+        <div id="nav-title">智能聊天助手</div>
+        <div class="nav-actions">
+            <button id="clear-chat-btn" class="nav-action-btn" title="清空聊天记录">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+    
     <div id="chat-container">
-        <div id="chat-window"></div>
+        <div id="chat-window">
+            <!-- 空聊天提示 -->
+            <div id="empty-chat" class="empty-chat">
+                <div class="empty-chat-icon">
+                    <i class="ri-message-3-line"></i>
+                </div>
+                <div class="empty-chat-title">开始新的对话</div>
+                <div class="empty-chat-subtitle">发送消息开始与AI助手交流，AI会根据您的问题提供帮助。</div>
+            </div>
+        </div>
         <div id="input-area">
             <div class="input-actions">
                 <button class="action-btn" title="表情">
@@ -30,6 +58,22 @@
             </button>
         </div>
     </div>
-    <script type="module" src="js/chat.js"></script>
+    
+    <!-- 确认对话框模板 -->
+    <template id="confirm-dialog-template">
+        <div class="confirm-dialog">
+            <div class="confirm-dialog-content">
+                <div class="confirm-dialog-title">确认操作</div>
+                <div class="confirm-dialog-message">确定要清空所有聊天记录吗？此操作无法撤销。</div>
+                <div class="confirm-dialog-buttons">
+                    <button class="confirm-dialog-button confirm-dialog-cancel">取消</button>
+                    <button class="confirm-dialog-button confirm-dialog-confirm">确定</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <!-- 使用defer加载脚本，确保DOM加载完成后执行 -->
+    <script type="module" src="js/chat.js" defer></script>
 </body>
 </html>

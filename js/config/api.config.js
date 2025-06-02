@@ -1,6 +1,6 @@
 // API配置文件
 export const API_CONFIG = {
-    endpoint: 'https://freeai.rensr.fun/v1/chat/completions',  // OpenAI API端点
+    endpoint: 'https://freeai.rensr.site/v1/chat/completions',  // OpenAI API端点
     apiKey: 'yPzpskwyfsf',  // 替换为实际的API密钥
     model: 'qwen2.5:latest',  // 使用的模型
     temperature: 0.7,  // 回复的创造性程度
