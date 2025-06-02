@@ -5,20 +5,13 @@ import { BillManager } from '../bill.js';
 
 const MAX_CONTEXT_MESSAGES = 10; // 最大上下文消息数量
 
-// 格式化日期为ISO格式
-function formatDate(dateStr) {
-    if (!dateStr) return new Date().toISOString();
-    
-    const date = new Date(dateStr);
-    return isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
-}
-
-// 检查账单数据是否完整
+/**
+ * 检查账单数据是否完整有效
+ * @param {Object} billData - 账单数据
+ * @returns {boolean} - 是否有效
+ */
 function isValidBillData(billData) {
     if (!billData || typeof billData !== 'object') return false;
-    
-    // 检查金额是否有效
-    if (!billData.amount) return false;
     
     // 提取数字金额
     const amount = parseFloat(String(billData.amount).replace(/[^0-9.]/g, ''));
@@ -28,31 +21,25 @@ function isValidBillData(billData) {
     return Boolean(billData.title && billData.category && billData.type);
 }
 
-// 处理账单数据
+/**
+ * 处理账单数据格式
+ * @param {Object} billData - 原始账单数据
+ * @returns {Object} - 处理后的账单数据
+ */
 function processBillData(billData) {
     return {
         ...billData,
         amount: parseFloat(String(billData.amount).replace(/[^0-9.]/g, '')),
-        date: formatDate(billData.date),
+        date: billData.date || new Date().toISOString(),
         type: billData.type.toLowerCase()
     };
 }
 
-// 从AI响应中提取JSON数据
-function extractBillDataFromResponse(aiResponse) {
-    try {
-        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) return null;
-        
-        const billData = JSON.parse(jsonMatch[0]);
-        return isValidBillData(billData) ? processBillData(billData) : null;
-    } catch (e) {
-        console.log('未找到账单数据或数据格式不正确:', e);
-        return null;
-    }
-}
-
-// 创建请求体
+/**
+ * 创建请求体
+ * @param {string} message - 用户消息
+ * @returns {Object} - API请求体
+ */
 function createRequestBody(message) {
     // 获取历史消息作为上下文
     const messages = loadMessages();
@@ -110,17 +97,46 @@ export async function sendMessage(message) {
         const data = await response.json();
         const aiResponse = data.choices[0].message.content;
         
-        // 处理可能的账单数据
-        const billData = extractBillDataFromResponse(aiResponse);
-        if (billData) {
-            const billManager = new BillManager();
-            billManager.addBill(
-                billData.title,
-                billData.amount,
-                billData.category,
-                billData.type,
-                billData.date
-            );
+        // 检查是否是账单修改的系统提示
+        const isEditMessage = message.includes("[系统提示：");
+        
+        // 只有在非修改消息时处理可能的JSON账单数据
+        if (!isEditMessage) {
+            try {
+                const jsonMatch = aiResponse.match(/\{[\s\S]*?\}/);
+                if (jsonMatch) {
+                    const billData = JSON.parse(jsonMatch[0]);
+                    if (isValidBillData(billData)) {
+                        const processedData = processBillData(billData);
+                        
+                        // 添加新账单
+                        const billManager = new BillManager();
+                        const newBill = billManager.addBill(
+                            processedData.title,
+                            processedData.amount,
+                            processedData.category,
+                            processedData.type,
+                            processedData.date
+                        );
+                        
+                        // 在账单创建成功后，添加系统提示，表明这是新创建的账单
+                        if (newBill) {
+                            // 如果AI响应中包含系统提示关键词，则替换为正确的创建消息
+                            if (aiResponse.includes("[系统提示：账单已成功修改]")) {
+                                aiResponse = aiResponse.replace("[系统提示：账单已成功修改]", "[系统提示：账单已成功创建]");
+                            } 
+                            // 如果没有包含系统提示但含有JSON数据，在JSON前添加创建成功提示
+                            else if (jsonMatch) {
+                                const beforeJson = aiResponse.substring(0, jsonMatch.index);
+                                const afterJson = aiResponse.substring(jsonMatch.index + jsonMatch[0].length);
+                                aiResponse = beforeJson + "[系统提示：账单已成功创建] " + afterJson;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('JSON解析错误:', e);
+            }
         }
 
         return aiResponse;

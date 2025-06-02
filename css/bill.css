@@ -102,35 +102,52 @@ body {
     padding: 20px;
 }
 
-.bill-group {
+/* 日期组样式 */
+.date-group {
     margin-bottom: 24px;
 }
 
-.date-header {
+.date-title {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 12px;
     margin-bottom: 12px;
     padding: 0 12px;
-}
-
-.date {
     font-weight: 500;
     color: #333;
 }
 
-.day {
-    color: #999;
-    font-size: 0.9rem;
+.date-stats {
+    display: flex;
+    gap: 10px;
+    font-size: 0.85rem;
 }
 
+.date-stat {
+    padding: 2px 8px;
+    border-radius: 12px;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.date-stat.income {
+    color: #52c41a;
+}
+
+.date-stat.expense {
+    color: #ff4d4f;
+}
+
+.bill-group {
+    margin-bottom: 16px;
+}
+
+/* 账单项样式 */
 .bill-item {
     background: white;
     border-radius: 12px;
     padding: 16px;
     display: flex;
-    align-items: center;
-    gap: 16px;
+    justify-content: space-between;
     margin-bottom: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -144,52 +161,82 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.bill-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.bill-icon.expense {
-    background: rgba(255, 77, 79, 0.1);
-    color: #ff4d4f;
-}
-
-.bill-icon.income {
-    background: rgba(82, 196, 26, 0.1);
-    color: #52c41a;
-}
-
-.bill-content {
+.bill-item-left {
     flex: 1;
 }
 
-.bill-title {
+.bill-item-title {
     font-weight: 500;
     color: #333;
     margin-bottom: 4px;
 }
 
-.bill-category {
+.bill-item-category {
     font-size: 0.9rem;
     color: #999;
 }
 
-.bill-amount {
+.bill-item-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.bill-item-amount {
     font-weight: 600;
     font-size: 1.1rem;
 }
 
-.bill-amount.expense {
+.bill-item-amount.expense {
     color: #ff4d4f;
 }
 
-.bill-amount.income {
+.bill-item-amount.income {
     color: #52c41a;
+}
+
+.bill-item-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.bill-item:hover .bill-item-actions {
+    opacity: 1;
+}
+
+.bill-item-actions button {
+    background: none;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #999;
+    transition: all 0.2s;
+}
+
+.bill-item-actions .edit-btn:hover {
+    background-color: rgba(24, 144, 255, 0.1);
+    color: #1890ff;
+}
+
+.bill-item-actions .delete-btn:hover {
+    background-color: rgba(255, 77, 79, 0.1);
+    color: #ff4d4f;
+}
+
+/* 空消息提示 */
+.empty-message {
+    text-align: center;
+    padding: 40px 0;
+    color: #999;
+    font-size: 1rem;
 }
 
 #add-bill-btn {
@@ -220,70 +267,71 @@ body {
     font-weight: 500;
 }
 
-@media (max-width: 768px) {
-    #bill-stats {
-        flex-direction: column;
-        margin-top: 72px;
-        padding: 16px;
-    }
-
-    .stat-card {
-        padding: 16px;
-    }
-
-    #bill-list {
-        padding: 16px;
-    }
-
-    .bill-item {
-        padding: 12px;
-    }
-
-    #add-bill-btn {
-        bottom: 24px;
-        right: 24px;
-    }
-
-    #nav-bar {
-        height: 56px;
-        padding: 0 16px;
-    }
-
-    /* 移除固定居中样式 */
-    .bill-action-menu {
-        position: absolute;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    }
-    
-    .menu-item {
-        padding: 16px;
-        font-size: 16px;
-    }
-    
-    .menu-item svg {
-        width: 20px;
-        height: 20px;
-        margin-right: 12px;
-    }
-    
-    /* 添加菜单背景遮罩 */
-    .menu-backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.4);
-        z-index: 999;
-        animation: fade-in 0.2s ease;
-    }
-    
-    @keyframes fade-in {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
+/* 账单详情对话框 */
+.bill-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    overflow: auto;
+    padding: 20px;
 }
 
+.bill-details {
+    margin: 20px 0;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: #666;
+}
+
+.detail-value {
+    font-weight: 500;
+}
+
+.detail-value.income {
+    color: #52c41a;
+}
+
+.detail-value.expense {
+    color: #ff4d4f;
+}
+
+/* 筛选对话框 */
+.filter-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    overflow: auto;
+    padding: 20px;
+}
+
+/* 添加/编辑账单对话框 */
 .add-bill-dialog {
     position: fixed;
     top: 0;
@@ -382,8 +430,13 @@ body {
     color: #666;
 }
 
-.submit-btn {
+.submit-btn, .edit-btn, .close-btn, .reset-btn {
     background: linear-gradient(135deg, #0091ff 0%, #0066ff 100%);
+    color: white;
+}
+
+.delete-btn {
+    background: #ff4d4f;
     color: white;
 }
 
@@ -391,148 +444,47 @@ body {
     background: #eee;
 }
 
-.submit-btn:hover {
+.submit-btn:hover, .edit-btn:hover, .close-btn:hover, .reset-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 102, 255, 0.2);
 }
 
-/* 添加右键菜单样式 */
-.bill-action-menu {
-    position: fixed;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 8px 0;
-    min-width: 150px;
-    z-index: 1000;
-    animation: menu-fade-in 0.2s ease;
+.delete-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.2);
 }
 
-@keyframes menu-fade-in {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.menu-item {
-    display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    color: #333;
-    font-size: 14px;
-}
-
-.menu-item:hover {
-    background-color: #f5f5f5;
-}
-
-.menu-item svg {
-    margin-right: 8px;
-    color: #666;
-}
-
-.menu-item.edit-item svg {
-    color: #1890ff;
-}
-
-.menu-item.delete-item svg {
-    color: #ff4d4f;
-}
-
-.menu-item.delete-item:hover {
-    color: #ff4d4f;
-}
-
-/* 高亮显示选中的账单项 */
-.bill-item.selected {
-    background-color: rgba(24, 144, 255, 0.1);
-    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-}
-
-/* 移动端菜单样式 */
-.bill-action-menu.mobile-menu {
-    width: auto;
-    min-width: 140px;
-    border-radius: 10px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-    transform-origin: left center;
-    animation: mobile-menu-fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes mobile-menu-fade-in {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-/* 添加菜单箭头指向账单项 */
-.bill-action-menu.mobile-menu::before {
-    content: '';
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    background-color: white;
-    transform: rotate(45deg);
-    box-shadow: inherit;
-}
-
-.bill-action-menu.mobile-menu[data-position="right"]::before {
-    left: -6px;
-    top: 50%;
-    margin-top: -6px;
-    box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.bill-action-menu.mobile-menu[data-position="left"]::before {
-    right: -6px;
-    top: 50%;
-    margin-top: -6px;
-    box-shadow: 2px -2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.bill-action-menu.mobile-menu[data-position="center"]::before {
-    left: 50%;
-    margin-left: -6px;
-    top: -6px;
-    box-shadow: -2px -2px 5px rgba(0, 0, 0, 0.1);
-}
-
-/* 移动端菜单项样式优化 */
-.bill-action-menu.mobile-menu .menu-item {
-    padding: 12px 16px;
-    font-size: 15px;
-}
-
-.bill-action-menu.mobile-menu .menu-item:first-child {
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-}
-
-.bill-action-menu.mobile-menu .menu-item:last-child {
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
-
-/* 移动端背景遮罩调整 */
 @media (max-width: 768px) {
-    .menu-backdrop {
-        background-color: rgba(0, 0, 0, 0.3);
+    #bill-stats {
+        flex-direction: column;
+        margin-top: 72px;
+        padding: 16px;
+    }
+
+    .stat-card {
+        padding: 16px;
+    }
+
+    #bill-list {
+        padding: 16px;
+    }
+
+    .bill-item {
+        padding: 12px;
+    }
+
+    #add-bill-btn {
+        bottom: 24px;
+        right: 24px;
+    }
+
+    #nav-bar {
+        height: 56px;
+        padding: 0 16px;
     }
     
-    /* 移动端菜单项触摸反馈 */
-    .bill-action-menu .menu-item:active {
-        background-color: #e6f7ff;
+    .dialog-content {
+        padding: 20px;
+        max-height: 80vh;
     }
 }

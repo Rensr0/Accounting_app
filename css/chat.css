@@ -174,16 +174,17 @@ body {
     display: block;
     text-align: right;
     padding-right: 8px;
+    align-self: flex-end;
 }
 
 .user-message-container .timestamp {
     text-align: right;
-    color: rgba(255, 255, 255, 0.7);
 }
 
 .ai-message-container .timestamp {
-    text-align: left;
-    padding-left: 8px;
+    text-align: right;
+    padding-right: 8px;
+    padding-left: 0;
 }
 
 #input-area {
@@ -569,4 +570,288 @@ body {
     font-size: 1rem;
     max-width: 300px;
     line-height: 1.5;
+}
+
+/* 账单卡片样式 */
+.bill-card {
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 12px 0;
+    box-shadow: 0 4px 12px rgba(0, 102, 255, 0.1);
+    border-left: 4px solid #6366f1;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.bill-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.bill-card-title {
+    font-weight: 600;
+    color: #333;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bill-card-title i {
+    color: #6366f1;
+}
+
+.bill-card-amount {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #ff4d4f;
+}
+
+.bill-card-amount.income {
+    color: #52c41a;
+}
+
+.bill-card-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 16px;
+}
+
+.bill-card-detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bill-card-detail-label {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.bill-card-detail-value {
+    font-weight: 500;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+/* 添加账单卡片操作区域样式 */
+.bill-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(99, 102, 241, 0.2);
+}
+
+.bill-card-edit-btn {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.3s ease;
+}
+
+.bill-card-edit-btn:hover {
+    background: rgba(99, 102, 241, 0.2);
+    transform: translateY(-2px);
+}
+
+.bill-card-edit-btn:active {
+    transform: translateY(0);
+}
+
+.bill-card-edit-btn i {
+    font-size: 14px;
+}
+
+/* 修改账单对话框样式，使用bill.css中的样式 */
+.add-bill-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    overflow: auto;
+    padding: 20px;
+}
+
+.dialog-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+    max-height: 85vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    position: relative;
+}
+
+.dialog-content h3 {
+    margin: 0 0 20px;
+    font-size: 1.25rem;
+    color: #333;
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 0 0 10px;
+    z-index: 1;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    background: #f9f9f9;
+    transition: all 0.3s;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #0091ff;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(0, 145, 255, 0.1);
+}
+
+.dialog-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.dialog-buttons button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.cancel-btn {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #0091ff 0%, #0066ff 100%);
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #eee;
+}
+
+.submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 102, 255, 0.2);
+}
+
+/* 移动设备上的账单卡片样式 */
+@media (max-width: 768px) {
+    .bill-card {
+        padding: 12px;
+        margin: 10px 0;
+    }
+    
+    .bill-card-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .bill-card-amount {
+        font-size: 1.1rem;
+    }
+    
+    .dialog-content {
+        width: 95%;
+        padding: 20px;
+    }
+}
+
+/* 添加账单卡片容器样式 */
+.bill-card-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+    margin: 8px 0 24px 16px;
+    position: relative;
+    transition: opacity 0.3s ease;
+}
+
+.bill-card-wrapper {
+    flex: 1;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    margin-left: 16px;
+}
+
+.bill-card-avatar {
+    margin: 0;
+}
+
+/* 调整账单卡片在容器中的样式 */
+.bill-card-container .bill-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* 确保账单卡片在消息气泡中也有正确的样式 */
+.message .bill-card {
+    width: 100%;
+    margin: 0;
+}
+
+/* 在移动设备上调整账单卡片布局 */
+@media (max-width: 768px) {
+    .bill-card-container {
+        margin: 8px 0 24px;
+    }
+    
+    .bill-card-wrapper {
+        max-width: 85%;
+    }
 }

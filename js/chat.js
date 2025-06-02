@@ -1,36 +1,33 @@
 import { sendMessage } from './modules/api.js';
-import { shouldShowTimeDivider, formatMessageTime } from './modules/messageHandler.js';
-import { createMessageElement, addMessageWithAnimation, showConfirmDialog } from './modules/ui.js';
+import { createMessageElement, addMessageWithAnimation, showConfirmDialog, processMessages } from './modules/ui.js';
 import { saveMessage, loadMessages, clearMessages } from './modules/storage.js';
 
 // 聊天应用类
 class ChatApp {
     constructor() {
+        // 初始化DOM元素引用
         this.chatWindow = document.getElementById('chat-window');
         this.messageInput = document.getElementById('message-input');
         this.sendButton = document.getElementById('send-btn');
         this.emptyChat = document.getElementById('empty-chat');
         this.clearChatBtn = document.getElementById('clear-chat-btn');
+        
+        // 状态变量
         this.isWaitingForResponse = false;
+        this.lastTimestamp = null;
         
         // 使用requestIdleCallback延迟初始化非关键任务
         if ('requestIdleCallback' in window) {
             requestIdleCallback(() => this.init());
         } else {
-            // 降级处理
             setTimeout(() => this.init(), 100);
         }
     }
     
     // 初始化应用
     init() {
-        // 设置事件监听
         this.setupEventListeners();
-        
-        // 检查是否显示空聊天提示
         this.checkEmptyChatState();
-        
-        // 使用分批加载历史消息
         this.loadHistoryMessagesInBatches();
     }
     
@@ -40,13 +37,8 @@ class ChatApp {
         
         if (messages.length === 0) return;
         
-        // 隐藏空聊天提示
         this.hideEmptyChat();
-        
-        // 创建文档片段
         const fragment = document.createDocumentFragment();
-        
-        // 分批处理，每批处理10条消息
         const batchSize = 10;
         let currentBatch = 0;
         
@@ -54,38 +46,37 @@ class ChatApp {
             const start = currentBatch * batchSize;
             const end = Math.min(start + batchSize, messages.length);
             
-            // 处理当前批次的消息
             for (let i = start; i < end; i++) {
                 const msg = messages[i];
-                const { messageContainer } = createMessageElement(
+                const messageObjects = createMessageElement(
                     msg.sender,
                     msg.content,
                     new Date(msg.timestamp)
                 );
-                fragment.appendChild(messageContainer);
+                
+                // 处理所有消息元素
+                this.lastTimestamp = processMessages(
+                    messageObjects, 
+                    fragment, 
+                    addMessageWithAnimation, 
+                    this.lastTimestamp
+                );
             }
             
-            // 更新批次计数
             currentBatch++;
             
-            // 如果还有更多批次，则计划处理下一批
             if (currentBatch * batchSize < messages.length) {
                 if ('requestAnimationFrame' in window) {
-                    requestAnimationFrame(() => {
-                        // 在下一帧继续处理
-                        processNextBatch();
-                    });
+                    requestAnimationFrame(processNextBatch);
                 } else {
-                    setTimeout(processNextBatch, 16); // 约60fps
+                    setTimeout(processNextBatch, 16);
                 }
             } else {
-                // 所有批次处理完毕，添加到DOM
                 this.chatWindow.appendChild(fragment);
                 this.scrollToBottom();
             }
         };
         
-        // 开始处理第一批
         processNextBatch();
     }
     
@@ -113,6 +104,59 @@ class ChatApp {
                 window.location.href = 'index.html';
             });
         }
+        
+        // 监听账单修改结果事件
+        document.addEventListener('bill-edit-result', (e) => {
+            this.handleBillEditResult(e.detail);
+        });
+    }
+    
+    // 处理账单编辑结果事件
+    async handleBillEditResult(detail) {
+        const { originalData, updatedData, success = false, errorMessage = '未找到匹配的账单' } = detail;
+        
+        // 自动构建AI回复内容
+        let aiMessage = '';
+        
+        if (success) {
+            aiMessage = `✅ 账单修改成功！\n原账单"${originalData.title}"(${originalData.amount}元)已更新为"${updatedData.title}"(${updatedData.amount}元)。`;
+            
+            // 判断金额变化
+            if (parseFloat(updatedData.amount) > parseFloat(originalData.amount)) {
+                aiMessage += `\n看来花费增加了${(parseFloat(updatedData.amount) - parseFloat(originalData.amount)).toFixed(2)}元，希望是值得的花费哦！`;
+            } else if (parseFloat(updatedData.amount) < parseFloat(originalData.amount)) {
+                aiMessage += `\n减少了${(parseFloat(originalData.amount) - parseFloat(updatedData.amount)).toFixed(2)}元的支出，很好的节约！`;
+            }
+            
+            // 直接显示AI回复
+            this.addMessage('ai', aiMessage);
+            
+            // 紧接着发送账单卡片
+            setTimeout(() => {
+                // 处理日期格式，转换为YYYY-MM-DD格式
+                let formattedDate = updatedData.date;
+                if (formattedDate && formattedDate.includes('T')) {
+                    formattedDate = formattedDate.split('T')[0];
+                }
+                
+                // 构建账单卡片的JSON
+                const billCardJson = JSON.stringify({
+                    title: updatedData.title,
+                    amount: updatedData.amount,
+                    category: updatedData.category,
+                    type: updatedData.type,
+                    date: formattedDate // 使用格式化后的日期
+                }, null, 2);
+                
+                // 添加一个新的AI消息，包含账单卡片的JSON
+                this.addMessage('ai', `这是修改后的账单信息:\n${billCardJson}`);
+            }, 300); // 短暂延迟以区分两条消息
+        } else {
+            aiMessage = `❌ 账单修改失败：${errorMessage}\n可能的原因：\n1. 原账单信息不准确\n2. 该账单已被删除\n\n您可以尝试重新创建一笔新账单。`;
+            
+            // 直接显示AI回复
+            this.addMessage('ai', aiMessage);
+        }
     }
     
     // 处理发送消息
@@ -120,9 +164,14 @@ class ChatApp {
         const message = this.messageInput.value.trim();
         if (!message || this.isWaitingForResponse) return;
         
+        this.messageInput.value = '';
+        await this.sendMessageToAI(message);
+    }
+    
+    // 发送消息到AI并处理响应
+    async sendMessageToAI(message) {
         // 添加用户消息
         this.addMessage('user', message);
-        this.messageInput.value = '';
         
         // 显示AI正在输入的动画
         this.showTypingIndicator();
@@ -213,26 +262,15 @@ class ChatApp {
         // 隐藏空聊天提示
         this.hideEmptyChat();
         
-        // 获取最后一条消息的时间戳
-        const lastMessage = this.chatWindow.querySelector('.message-container:last-child');
-        const lastTimestamp = lastMessage ? new Date(lastMessage.dataset.timestamp) : null;
-        const currentTime = timestamp;
+        // 创建消息元素
+        const messageObjects = createMessageElement(sender, message, timestamp);
         
-        // 判断是否需要显示时间分割线
-        if (shouldShowTimeDivider(lastTimestamp, currentTime)) {
-            const timeDivider = document.createElement('div');
-            timeDivider.classList.add('time-divider');
-            timeDivider.textContent = formatMessageTime(currentTime);
-            this.chatWindow.appendChild(timeDivider);
-        }
-        
-        // 创建并添加消息元素
-        const { messageContainer, messageElement } = createMessageElement(sender, message, currentTime);
-        addMessageWithAnimation(messageContainer, messageElement, this.chatWindow);
+        // 处理并添加消息
+        this.lastTimestamp = processMessages(messageObjects, this.chatWindow, addMessageWithAnimation, this.lastTimestamp);
         
         // 保存消息到localStorage
         if (shouldSave) {
-            saveMessage(sender, message, currentTime);
+            saveMessage(sender, message, timestamp);
         }
         
         // 滚动到底部
@@ -241,7 +279,6 @@ class ChatApp {
     
     // 滚动到底部
     scrollToBottom() {
-        // 使用requestAnimationFrame确保在下一帧渲染前滚动，提高流畅度
         requestAnimationFrame(() => {
             this.chatWindow.scrollTop = this.chatWindow.scrollHeight;
         });
@@ -281,13 +318,8 @@ class ChatApp {
     
     // 清空聊天记录
     clearChat() {
-        // 清空本地存储
         clearMessages();
-        
-        // 清空聊天窗口
         this.chatWindow.innerHTML = '';
-        
-        // 显示空聊天提示
         this.showEmptyChat();
     }
 }
