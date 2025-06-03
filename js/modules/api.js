@@ -47,7 +47,7 @@ function createRequestBody(message) {
     
     // 添加当前时间戳信息
     const now = new Date();
-    const timeInfo = `[当前时间：${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日]\n`;
+    const timeInfo = `[当前时间：${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}]\n`;
     const messageWithTime = timeInfo + message;
 
     // 构建带上下文的请求体
@@ -129,7 +129,7 @@ export async function sendMessage(message) {
                             else if (jsonMatch) {
                                 const beforeJson = aiResponse.substring(0, jsonMatch.index);
                                 const afterJson = aiResponse.substring(jsonMatch.index + jsonMatch[0].length);
-                                aiResponse = beforeJson + "[系统提示：账单已成功创建] " + afterJson;
+                                aiResponse = beforeJson + "[系统提示：账单已成功创建]" + afterJson;
                             }
                         }
                     }

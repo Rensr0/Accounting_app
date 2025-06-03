@@ -164,8 +164,27 @@ class ChatApp {
         const message = this.messageInput.value.trim();
         if (!message || this.isWaitingForResponse) return;
         
+        // 保存焦点状态
+        const hadFocus = document.activeElement === this.messageInput;
+        
+        // 保存消息内容
+        const messageToSend = message;
+        
+        // 清空输入框
         this.messageInput.value = '';
-        await this.sendMessageToAI(message);
+        
+        try {
+            // 发送消息
+            await this.sendMessageToAI(messageToSend);
+        } finally {
+            // 无论发送成功或失败，都确保输入框重新获得焦点
+            if (hadFocus) {
+                // 使用较短的延迟确保焦点恢复
+                setTimeout(() => {
+                    this.messageInput.focus();
+                }, 10);
+            }
+        }
     }
     
     // 发送消息到AI并处理响应
@@ -326,31 +345,111 @@ class ChatApp {
 
 // 页面加载完成后初始化聊天应用
 document.addEventListener('DOMContentLoaded', () => {
-    new ChatApp();
+    const app = new ChatApp();
     
-    // 防止输入法弹出导致的视觉问题
+    // 获取关键DOM元素
     const messageInput = document.getElementById('message-input');
+    const inputArea = document.getElementById('input-area');
+    const chatWindow = document.getElementById('chat-window');
+    const sendButton = document.getElementById('send-btn');
     
-    // 监听输入框获取焦点
+    // 创建一个变量来跟踪输入法状态
+    let isKeyboardVisible = false;
+    
+    // 输入框获得焦点时显示输入法
     messageInput.addEventListener('focus', () => {
-        // 在移动设备上，当输入法弹出时，防止底部导航栏上移
+        isKeyboardVisible = true;
         document.body.classList.add('keyboard-open');
         
         // 稍微延迟滚动，等待布局稳定
         setTimeout(() => {
-            const chatWindow = document.getElementById('chat-window');
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }, 300);
     });
     
     // 监听输入框失去焦点
-    messageInput.addEventListener('blur', () => {
-        document.body.classList.remove('keyboard-open');
+    messageInput.addEventListener('blur', (e) => {
+        // 检查是否是因为点击发送按钮导致的失去焦点
+        // 如果是，则阻止默认行为，保持焦点
+        const activeElement = document.activeElement;
+        if (activeElement === sendButton || sendButton.contains(activeElement)) {
+            e.preventDefault();
+            setTimeout(() => {
+                messageInput.focus();
+            }, 10);
+        }
+    });
+    
+    // 直接处理发送按钮的点击事件
+    sendButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // 调用发送消息方法
+        app.handleSendMessage();
+        
+        // 重要：确保输入框保持焦点
+        setTimeout(() => {
+            messageInput.focus();
+        }, 10);
+        
+        return false;
+    });
+    
+    // 阻止发送按钮的mousedown事件，防止输入框失去焦点
+    sendButton.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    });
+    
+    // 同样阻止触摸事件
+    sendButton.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+    });
+    
+    // 点击输入区域内的任何元素都不会隐藏输入法
+    inputArea.addEventListener('mousedown', (e) => {
+        // 如果点击的是发送按钮，已经有专门的处理
+        if (e.target === sendButton || sendButton.contains(e.target)) {
+            return;
+        }
+        
+        // 阻止事件冒泡
+        e.stopPropagation();
+    });
+    
+    // 同样处理触摸事件
+    inputArea.addEventListener('touchstart', (e) => {
+        // 如果点击的是发送按钮，已经有专门的处理
+        if (e.target === sendButton || sendButton.contains(e.target)) {
+            return;
+        }
+        
+        // 阻止事件冒泡
+        e.stopPropagation();
+    });
+    
+    // 点击输入区域外的任何地方都会隐藏输入法
+    document.addEventListener('mousedown', (e) => {
+        if (isKeyboardVisible && !inputArea.contains(e.target)) {
+            isKeyboardVisible = false;
+            document.body.classList.remove('keyboard-open');
+        }
+    });
+    
+    // 同样处理触摸事件
+    document.addEventListener('touchstart', (e) => {
+        if (isKeyboardVisible && !inputArea.contains(e.target)) {
+            isKeyboardVisible = false;
+            document.body.classList.remove('keyboard-open');
+        }
     });
     
     // 监听窗口大小变化，防止键盘显示/隐藏导致的布局问题
     window.addEventListener('resize', () => {
-        const chatWindow = document.getElementById('chat-window');
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        if (isKeyboardVisible) {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
     });
 });

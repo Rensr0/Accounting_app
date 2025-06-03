@@ -942,13 +942,69 @@ body {
 
 /* 键盘弹出时的样式 */
 body.keyboard-open #bottom-nav {
-    display: none; /* 输入法弹出时隐藏底部导航栏 */
+    display: none !important; /* 输入法弹出时隐藏底部导航栏 */
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 body.keyboard-open #input-area {
-    bottom: 0; /* 输入区域直接贴底 */
+    bottom: 0 !important; /* 输入区域直接贴底 */
+    position: fixed !important;
+    z-index: 1001 !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
 }
 
 body.keyboard-open #chat-window {
-    padding-bottom: 70px; /* 减少底部空间，只需适应输入框 */
+    padding-bottom: 80px !important; /* 减少底部空间，只需适应输入框 */
+}
+
+/* 添加防止输入法问题的额外样式 */
+#message-input {
+    -webkit-appearance: none;
+    appearance: none;
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+}
+
+/* 增强输入区域点击体验 */
+#input-area {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+    z-index: 999;
+}
+
+#input-area .action-btn,
+#send-btn {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+/* 解决iOS输入法问题 */
+@supports (-webkit-touch-callout: none) {
+    #input-area {
+        position: sticky;
+        bottom: 0;
+        z-index: 1001;
+    }
+    
+    body.keyboard-open {
+        height: calc(100% + 1px);
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+    }
+    
+    /* 增强iOS上的输入体验 */
+    #message-input:focus {
+        -webkit-user-select: text !important;
+        user-select: text !important;
+    }
 }

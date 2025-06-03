@@ -6,10 +6,21 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>智能聊天助手</title>
     <link rel="stylesheet" href="css/chat.css">
     <!-- 使用国内CDN镜像加载图标库 -->
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/remixicon/3.5.0/remixicon.css">
+    <!-- 添加FastClick库解决移动端点击延迟问题 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/fastclick/1.0.6/fastclick.min.js"></script>
+    <script>
+        // 初始化FastClick
+        if ('addEventListener' in document) {
+            document.addEventListener('DOMContentLoaded', function() {
+                FastClick.attach(document.body);
+            }, false);
+        }
+    </script>
 </head>
 <body>
     <div id="nav-bar">
@@ -35,21 +46,21 @@
                 <div class="empty-chat-subtitle">发送消息开始与AI助手交流，AI会根据您的问题提供帮助。</div>
             </div>
         </div>
-        <div id="input-area">
+        <div id="input-area" tabindex="-1">
             <div class="input-actions">
-                <button class="action-btn" title="表情">
+                <button class="action-btn" title="表情" type="button">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-5-7h10v2H7v-2zm2-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm6 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" fill="currentColor"/>
                     </svg>
                 </button>
-                <button class="action-btn" title="附件">
+                <button class="action-btn" title="附件" type="button">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M14 13.5V8a2 2 0 1 0-4 0v5.5a3.5 3.5 0 0 0 7 0V8a5 5 0 0 0-10 0v5.5a6.5 6.5 0 0 0 13 0V8h-2v5.5a4.5 4.5 0 1 1-9 0V8a3 3 0 1 1 6 0v5.5a1.5 1.5 0 1 1-3 0V8h-2v5.5a3.5 3.5 0 0 0 7 0" fill="currentColor"/>
                     </svg>
                 </button>
             </div>
-            <input type="text" id="message-input" placeholder="输入消息..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-            <button id="send-btn">
+            <input type="text" id="message-input" placeholder="输入消息..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send">
+            <button id="send-btn" type="button">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 20V4L22 12L3 20ZM5 17L16.85 12L5 7V10.5L11 12L5 13.5V17Z" fill="currentColor"/>
                 </svg>
